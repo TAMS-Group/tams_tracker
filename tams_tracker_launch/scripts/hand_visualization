@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+
+import rospy
+import rosbag
+import sys
+import visualization_msgs.msg
+import random
+import std_msgs.msg
+import tams_tracker_msgs.msg
+
+rospy.init_node("phasespace_marker_trajectories")
+
+random.seed(0)
+
+marker_message = tams_tracker_msgs.msg.MarkerArrayStamped()
+def callback(msg):
+    global marker_message
+    marker_message = msg
+rospy.Subscriber("/tams_tracker_node/markers", tams_tracker_msgs.msg.MarkerArrayStamped, callback)
+
+publisher = rospy.Publisher("/tams_tracker_node/visualization_markers", visualization_msgs.msg.MarkerArray, queue_size=100)
+
+chains = [
+    [10, 9],
+    [8, 4, 6],
+    [7, 5],
+    [2, 3],
+    [13, 11, 12, 1],
+]
+
+links = [ ]
+for chain in chains:
+    for i in range(1, len(chain)):
+        links.append([chain[i - 1], chain[i]])
+
+colors = [ ]
+
+while True:
+
+    if rospy.is_shutdown():
+        break
+
+    msg = marker_message
+
+    marker = visualization_msgs.msg.Marker()
+    marker.type = marker.SPHERE_LIST
+    marker.action = marker.ADD
+    marker.header.frame_id = "/tams_tracker"
+    marker.pose.orientation.w = 1.0
+    marker.ns = "hand_joints"
+    marker.scale.x = 0.01
+    marker.lifetime = rospy.Duration(0.1)
+    for p in msg.markers:
+        marker.points.append(p.position)
+        while len(colors) <= p.id:
+            color = std_msgs.msg.ColorRGBA()
+            color.r = random.random()
+            color.g = random.random()
+            color.b = random.random()
+            color.a = 1.0
+            colors.append(color)
+        marker.colors.append(colors[p.id])
+    marker_array = visualization_msgs.msg.MarkerArray()
+    marker_array.markers.append(marker)
+    publisher.publish(marker_array)
+
+    marker = visualization_msgs.msg.Marker()
+    marker.type = marker.LINE_LIST
+    marker.action = marker.ADD
+    marker.header.frame_id = "/tams_tracker"
+    marker.pose.orientation.w = 1.0
+    marker.ns = "hand_links"
+    marker.scale.x = 0.01
+    marker.lifetime = rospy.Duration(0.1)
+    for link in links:
+        a = [p for p in msg.markers if p.id == link[0]]
+        b = [p for p in msg.markers if p.id == link[1]]
+        if len(a) == 0 or len(b) == 0: continue
+        a = a[0]
+        b = b[0]
+        marker.points.append(a.position)
+        marker.points.append(b.position)
+        marker.colors.append(colors[a.id])
+        marker.colors.append(colors[b.id])
+    marker_array = visualization_msgs.msg.MarkerArray()
+    marker_array.markers.append(marker)
+    publisher.publish(marker_array)
+
+    rospy.sleep(0.05)

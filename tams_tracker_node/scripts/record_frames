@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+
+import rospy
+import re
+import os
+import sys
+import control_msgs.msg
+import trajectory_msgs.msg
+import random
+import math
+import numpy as np
+import sensor_msgs.msg
+import curses
+import tams_tracker_msgs.msg
+import json
+import time
+import cv2
+
+def main(stdscr):
+
+    rospy.init_node("save_marker_views")
+
+    stdscr.clear()
+
+    counter = 0
+
+    cameras = [cv2.VideoCapture(i) for i in range(3)]
+
+    path = "recordings/rec-" + str(time.time())
+    os.mkdir(path)
+
+    stdscr.nodelay(True)
+
+    while not rospy.is_shutdown():
+
+        stdscr.clear()
+        stdscr.addstr("tams tracker multiview frame recorder\n\n")
+        stdscr.addstr("press [space] to save a set of images\n")
+        stdscr.addstr("press [return] or [escape] to exit\n")
+        stdscr.addstr("\n")
+        stdscr.addstr(str(counter) + " image sets\n")
+        stdscr.addstr("\n")
+        stdscr.refresh()
+
+        images = [camera.read()[1] for camera in cameras];
+        for i in range(len(images)):
+            cv2.imshow(str(i), images[i])
+        cv2.waitKey(1)
+
+        chr = stdscr.getch()
+        if chr == 32:
+            view = { }
+            view["markers"] = [ ]
+            msg = x_msg
+            for m in msg.markers:
+                marker = {
+                    "id": m.id,
+                    "position": {
+                        "x": m.position.x,
+                        "y": m.position.y,
+                        "z": m.position.z,
+                    }
+                }
+                view["markers"].append(marker)
+                total_marker_count = total_marker_count + 1
+            data["views"].append(view)
+        if chr == 27 or chr == 10:
+            break;
+
+curses.wrapper(main)

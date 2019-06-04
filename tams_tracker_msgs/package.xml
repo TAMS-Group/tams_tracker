@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package>
+  <name>tams_tracker_msgs</name>
+  <version>0.0.0</version>
+  <description>-</description>
+
+  <maintainer email="ruppel@informatik.uni-hamburg.de">Philipp Ruppel</maintainer>
+  <author email="ruppel@informatik.uni-hamburg.de">Philipp Ruppel</author>
+
+  <license>-</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>geometry_msgs</build_depend>
+  <run_depend>geometry_msgs</run_depend>
+
+  <build_depend>message_generation</build_depend>
+  <run_depend>message_runtime</run_depend>
+
+  <build_depend>std_msgs</build_depend>
+  <run_depend>std_msgs</run_depend>
+</package>

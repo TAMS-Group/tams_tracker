@@ -1,0 +1,118 @@
+#!/usr/bin/env python
+
+import rospy
+import rosbag
+import sys
+import visualization_msgs.msg
+import random
+import std_msgs.msg
+import tams_tracker_msgs.msg
+import geometry_msgs.msg
+import math
+
+rospy.init_node("tams_tracker_handbag_trajectories")
+
+random.seed(0)
+
+bag = rosbag.Bag(sys.argv[1], "r")
+
+publisher = rospy.Publisher("/tams_tracker_node/visualization_markers", visualization_msgs.msg.MarkerArray, queue_size=1)
+
+marker_array = visualization_msgs.msg.MarkerArray()
+
+id_set = set()
+for msg in bag:
+    if msg.topic == "/tams_tracker_node/markers":
+        for p in msg.message.markers:
+            id_set.add(p.id)
+
+def distance(a, b):
+    dx = a.x - b.x
+    dy = a.y - b.y
+    dz = a.z - b.z
+    return math.sqrt(dx * dx + dy * dy + dz * dz)
+
+for id in id_set:
+    marker = visualization_msgs.msg.Marker()
+
+    marker.ns = "trajectory"
+    marker.id = id
+
+    marker.type = marker.LINE_LIST
+    marker.action = marker.ADD
+    marker.header.frame_id = "/tams_tracker"
+    marker.pose.orientation.w = 1.0
+
+    marker.scale.x = 0.001
+
+    marker.color.a = 0.5
+    marker.color.r = random.random()
+    marker.color.g = random.random()
+    marker.color.b = random.random()
+
+    previous_position = geometry_msgs.msg.Point()
+
+    for msg in bag:
+        if msg.topic == "/tams_tracker_node/markers":
+            for p in msg.message.markers:
+                if p.id == id:
+                    q = geometry_msgs.msg.Point()
+                    q.x = p.position.x
+                    q.y = p.position.z
+                    q.z = p.position.y
+                    if distance(q, previous_position) < 0.005:
+                        marker.points.append(previous_position)
+                        marker.points.append(q)
+                    previous_position = q
+                    #marker.points.append(q)
+
+    marker_array.markers.append(marker)
+
+publisher.publish(marker_array)
+
+rospy.sleep(3.0)
+
+'''
+marker = visualization_msgs.msg.Marker()
+
+publisher = rospy.Publisher("/tams_tracker_node/visualization_markers", visualization_msgs.msg.MarkerArray, queue_size=1)
+
+marker.ns = "trajectory"
+marker.id = 0
+
+marker.type = marker.POINTS
+marker.action = marker.ADD
+marker.header.frame_id = "/tams_tracker"
+marker.pose.orientation.w = 1.0
+
+marker.scale.x = 0.001
+
+marker.color.a = 1.0
+marker.color.r = 1.0
+marker.color.g = 1.0
+marker.color.b = 0.0
+
+colors = [ ]
+
+for msg in bag:
+    if msg.topic == "/tams_tracker_node/markers":
+        for p in msg.message.markers:
+            #print p
+            marker.points.append(p.position)
+            while len(colors) <= p.id:
+                color = std_msgs.msg.ColorRGBA()
+                color.r = random.random()
+                color.g = random.random()
+                color.b = random.random()
+                color.a = 1.0
+                colors.append(color)
+            marker.colors.append(colors[p.id])
+    if rospy.is_shutdown():
+        break
+
+marker_array = visualization_msgs.msg.MarkerArray()
+marker_array.markers.append(marker)
+publisher.publish(marker_array)
+
+rospy.sleep(3.0)
+'''

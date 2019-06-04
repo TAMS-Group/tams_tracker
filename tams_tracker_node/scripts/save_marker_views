@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+
+import rospy
+import re
+import os
+import sys
+import control_msgs.msg
+import trajectory_msgs.msg
+import random
+import math
+import numpy as np
+import sensor_msgs.msg
+import curses
+import tams_tracker_msgs.msg
+import json
+import time
+
+def main(stdscr):
+
+    rospy.init_node("save_marker_views")
+
+    global x_msg
+    x_msg = tams_tracker_msgs.msg.MarkerArrayStamped()
+
+    def callback(msg):
+        global x_msg
+        x_msg = msg
+    rospy.Subscriber("/tams_tracker_node/markers", tams_tracker_msgs.msg.MarkerArrayStamped, callback)
+
+    data = { }
+    data["views"] = [ ]
+
+    total_marker_count = 0
+
+    save = False
+
+    stdscr.clear()
+
+    while not rospy.is_shutdown():
+
+        stdscr.clear()
+        stdscr.addstr("save tams tracker markers\n\n")
+        stdscr.addstr("press [space] to add markers\n")
+        stdscr.addstr("press [return] to save and exit\n")
+        stdscr.addstr("press [escape] to exit without saving\n")
+        stdscr.addstr("\n")
+        stdscr.addstr(str(len(data["views"])) + " views\n")
+        stdscr.addstr(str(total_marker_count) + " markers total\n")
+        stdscr.addstr("\n")
+        stdscr.refresh()
+
+        chr = stdscr.getch()
+        if chr == 32:
+            view = { }
+            view["markers"] = [ ]
+            msg = x_msg
+            for m in msg.markers:
+                marker = {
+                    "id": m.id,
+                    "position": {
+                        "x": m.position.x,
+                        "y": m.position.y,
+                        "z": m.position.z,
+                    }
+                }
+                view["markers"].append(marker)
+                total_marker_count = total_marker_count + 1
+            data["views"].append(view)
+        if chr == 10:
+            if total_marker_count > 0:
+                save = True
+            break
+        if chr == 27:
+            break;
+
+    if save:
+        prefix = "marker_views_" + str(int(round(time.time() * 1000)))
+        stdscr.addstr("enter label (optional):\n")
+        stdscr.refresh()
+        curses.echo()
+        fname = stdscr.getstr()
+        curses.noecho()
+        if len(fname) != 0:
+            fname = "_" + fname
+        fname = prefix + fname + ".json"
+        stdscr.addstr("file name: " + fname + "\n")
+        with open(fname, "w") as f:
+            json.dump(data, f)
+        stdscr.addstr("ready\n")
+
+curses.wrapper(main)

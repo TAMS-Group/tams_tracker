@@ -1,0 +1,8 @@
+visualization_ray_width: 0.002
+min_distance_to_camera: 0.1
+visualization_marker_size: 0.01
+visualization_ray_length: 10
+marker_radius: 0.01
+min_marker_confidence: 10
+max_reprojection_error: 0.005
+tracking_time: 3.0

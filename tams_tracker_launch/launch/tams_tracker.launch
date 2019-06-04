@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="mode" default="tracking" />
+  <arg name="config" default="markers" />
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+  <node required="true" pkg="tams_tracker_node" type="tams_tracker_node" respawn="false" name="tams_tracker_node" output="screen" launch-prefix="$(arg launch_prefix)">
+    <param name="calibration_file" type="str" value="$(find tams_tracker_launch)/data/calibration.yaml" />
+    <rosparam command="load" file="$(find tams_tracker_launch)/data/parameters.yaml" />
+    <rosparam command="load" file="$(find tams_tracker_launch)/config/$(arg config).yaml" />
+    <param name="mode" value="$(arg mode)" />
+  </node>
+  <node pkg="tams_tracker_launch" type="configure_cameras.sh" respawn="false" name="configure_cameras" output="screen">
+  </node>
+</launch>

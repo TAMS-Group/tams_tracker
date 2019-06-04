@@ -1,0 +1,14 @@
+markers:
+  - { id: 1, frequency: 2 }
+  - { id: 2, frequency: 3 }
+  - { id: 3, frequency: 4 }
+  - { id: 4, frequency: 5 }
+  - { id: 5, frequency: 6 }
+  - { id: 6, frequency: 7 }
+  - { id: 7, frequency: 8 }
+  - { id: 8, frequency: 9 }
+  - { id: 9, frequency: 10 }
+  - { id: 10, frequency: 11 }
+  - { id: 11, frequency: 12 }
+  - { id: 12, frequency: 13 }
+  - { id: 13, frequency: 14 }
