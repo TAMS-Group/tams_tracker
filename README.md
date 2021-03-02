@@ -44,5 +44,5 @@ Marker positions and object poses are published as ROS messages for easy integra
 ## Links
 
 - https://github.com/TAMS-Group/tams_tracker
-- https://tams-group.github.com/tams_tracker
+- https://tams-group.github.io/bio_ik/
 
